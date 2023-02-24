@@ -5,6 +5,7 @@
   let readlineString = "";
   let textarea: HTMLElement;
   let baudRate: number = 9600;
+  let newline: string = "\n";
   let paths: string = "";
   let selectedPath: string = "";
   let isOpened: boolean = false;
@@ -32,7 +33,8 @@
   });
 
   async function reads() {
-    readlineString += await invoke("readlines");
+    let result: string = await invoke("readlines");
+    readlineString += result.replaceAll('\r', '\\r').replaceAll('\n', '\\n').replaceAll(newline, '\n');
     textarea.scrollTop = textarea.scrollHeight;
   }
   function changePort(event: any) {
@@ -40,6 +42,9 @@
   }
   function changeBaudRate(event: any) {
     baudRate = event.target.value;
+  }
+  function changeNewline(event: any) {
+    newline = event.target.value;
   }
   async function sendText() {
     console.log(sendingText);
@@ -69,7 +74,7 @@
     <option value=9600 selected>9600 bps</option>
     <option value=38400>38400 bps</option>
   </select>
-  <select id="newlineid">
+  <select id="newlineid" on:change={changeNewline}>
     <option value="\n" selected>LF</option>
     <option value="\r">CR</option>
     <option value="\r\n">CRLF</option>

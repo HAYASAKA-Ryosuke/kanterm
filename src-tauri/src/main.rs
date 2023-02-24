@@ -57,7 +57,7 @@ fn readlines(state: State<TtyPortState>) -> String{
     let mut buffer = String::new();
     let mut buf = [0; 1000];
     return match state.port.lock().as_mut().unwrap().as_mut().unwrap().read(buf.as_mut_slice()) {
-        Ok(t) => format!("{:?}", std::str::from_utf8(&buf[..t]).unwrap()),
+        Ok(t) => std::str::from_utf8(&buf[..t]).unwrap().to_string(),
         Err(_e) => format!(""),
         _ => format!("")
     }
