@@ -49,7 +49,7 @@ pub(crate) fn open_port(path: &str, baud_rate: u32, state: State<TtyPortState>) 
 
 #[tauri::command]
 fn write(data: &str, state: State<'_, TtyPortState>) {
-    state.port.lock().as_mut().unwrap().as_mut().unwrap().write(data.as_bytes());
+    state.port.lock().as_mut().unwrap().as_mut().unwrap().write(&data.as_bytes());
 }
 
 #[tauri::command]
@@ -98,7 +98,7 @@ tauri::Builder::default()
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![fetch_ports, close_port, open_port, readlines])
+        .invoke_handler(tauri::generate_handler![fetch_ports, write, close_port, open_port, readlines])
         .manage(TtyPortState{ port: Default::default() })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

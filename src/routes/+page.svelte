@@ -9,6 +9,7 @@
   let selectedPath: string = "";
   let isOpened: boolean = false;
   let timer: NodeJS.Timer
+  let sendingText: string = "";
 
   async function connect() {
     isOpened = true;
@@ -40,15 +41,23 @@
   function changeBaudRate(event: any) {
     baudRate = event.target.value;
   }
+  async function sendText() {
+    console.log(sendingText);
+    await invoke('write', {data: sendingText});
+    sendingText = '';
+  }
 </script>
 
-
 <div class="row">
-  <textarea id="textarea_id" rows=50 cols=100 bind:value={readlineString}/>
+  <textarea id="textarea_id" rows=30 cols=100 bind:value={readlineString}/>
 </div>
 
 <div class="row">
+  <input type="text" bind:value={sendingText} />
+  <button on:click={sendText}>send</button>
+</div>
 
+<div class="row">
  	<select on:change={changePort}>
 	{#each paths as path}
 	  <option value={path}>
