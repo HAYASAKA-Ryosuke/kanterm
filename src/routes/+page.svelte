@@ -11,13 +11,22 @@
   let isOpened: boolean = false;
   let timer: NodeJS.Timer
   let sendingText: string = "";
+  let binaryModeEnabled: boolean = false;
 
   async function connect() {
     isOpened = true;
     await invoke("open_port", {path: selectedPath, baudRate: baudRate});
-    timer = setInterval(() => {
-      reads()
-	  }, 100);
+    console.log(binaryModeEnabled);
+    if (binaryModeEnabled) {
+      console.log('binary');
+      timer = setInterval(() => {
+        binaryModeReads()
+	    }, 100);
+    } else {
+      timer = setInterval(() => {
+        asciiModeReads()
+	    }, 100);
+    }
   }
   async function disconnect() {
     isOpened = false;
@@ -25,16 +34,21 @@
     await invoke("close_port");
   }
   onMount(async () => {
-    textarea = document.getElementById('textarea_id') as HTMLElement;
+    textarea = document.getElementById('textareaId') as HTMLElement;
     paths = await invoke("fetch_ports");
     if (paths.length > 0) {
       selectedPath = paths[0]
     }
   });
 
-  async function reads() {
+  async function asciiModeReads() {
     let result: string = await invoke("readlines");
     readlineString += result.replaceAll('\r', '\\r').replaceAll('\n', '\\n').replaceAll(newline, '\n');
+    textarea.scrollTop = textarea.scrollHeight;
+  }
+  async function binaryModeReads() {
+    let result: string = await invoke("readlines");
+    readlineString += (new TextEncoder).encode(result).toString().replaceAll(',', ' ');
     textarea.scrollTop = textarea.scrollHeight;
   }
   function changePort(event: any) {
@@ -54,27 +68,31 @@
 </script>
 
 <div class="row">
-  <textarea id="textarea_id" rows=30 cols=100 bind:value={readlineString}/>
+  <input disabled={!isOpened} type="text" bind:value={sendingText} />
+  <button disabled={!isOpened} on:click={sendText}>send</button>
 </div>
 
 <div class="row">
-  <input type="text" bind:value={sendingText} />
-  <button on:click={sendText}>send</button>
+  <textarea id="textareaId" rows=30 cols=100 bind:value={readlineString}/>
+</div>
+<div class="row">
+  <input disabled={isOpened} type="checkbox" bind:checked={binaryModeEnabled}>
+  <label for="binaryMode">binary mode</label>
 </div>
 
 <div class="row">
- 	<select on:change={changePort}>
+ 	<select disabled={isOpened} on:change={changePort}>
 	{#each paths as path}
 	  <option value={path}>
 	    {path}
     </option>
 	{/each}
 	</select>
-  <select id="bardRateId" on:change={changeBaudRate}>
+  <select disabled={isOpened} on:change={changeBaudRate}>
     <option value=9600 selected>9600 bps</option>
     <option value=38400>38400 bps</option>
   </select>
-  <select id="newlineid" on:change={changeNewline}>
+  <select disabled={isOpened} on:change={changeNewline}>
     <option value="\n" selected>LF</option>
     <option value="\r">CR</option>
     <option value="\r\n">CRLF</option>
