@@ -2,22 +2,14 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-use std::{time::Duration, sync::Mutex, io, borrow::BorrowMut};
+use std::{time::Duration, sync::Mutex};
 
 use tauri::{State};
-
-#[derive(Debug, serde::Serialize)]
-enum MyError {
-  FooError,
-}
-
-type SerialPortResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 struct TtyPortState {
     port: Mutex<Option<Box<dyn serialport::SerialPort>>>,
 }
 
-//fn fetch_ports() -> Vec<SerialPortInfo> {
 #[tauri::command]
 fn fetch_ports() -> Vec<String> {
     let ports = serialport::available_ports().expect("No ports found!");
@@ -54,7 +46,6 @@ fn write(data: &str, state: State<'_, TtyPortState>) {
 
 #[tauri::command]
 fn readlines(state: State<TtyPortState>) -> String{
-    let mut buffer = String::new();
     let mut buf = [0; 1000];
     return match state.port.lock().as_mut().unwrap().as_mut().unwrap().read(buf.as_mut_slice()) {
         Ok(t) => std::str::from_utf8(&buf[..t]).unwrap().to_string(),
