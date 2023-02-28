@@ -34,7 +34,6 @@ pub(crate) fn open_port(path: &str, baud_rate: u32, state: State<TtyPortState>) 
         .open()
         .unwrap_or_else(|e| {
             eprintln!("Failed to open \"{}\". Error: {}", path, e);
-            ::std::process::exit(1);
     });
     *state.port.lock().unwrap() = Some(port);
 }
